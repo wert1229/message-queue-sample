@@ -3,11 +3,44 @@
 <head>
     <title>Hello</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/sockjs-client/0.3.4/sockjs.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 </head>
 <body>
 <div class="container">
     <p>커피제조중...</p>
-    <p>상태</p>
+    <p id="coffee_state">상태</p>
 </div>
+
+<script>
+
+    var ws = new WebSocket("ws://222.111.195.42:15674/ws");
+    var client = Stomp.over(ws);
+    // RabbitMQ Web-Stomp does not support heartbeats so disable them
+    client.heartbeat.outgoing = 0;
+    client.heartbeat.incoming = 0;
+
+    client.debug = onDebug;
+
+    // Make sure the user has limited access rights
+    client.connect("admin", "1234", onConnect, onError, "/");
+
+    //Start subscribing to the chat queue
+    function onConnect() {
+        var id = client.subscribe("coffee-result", function(msg) {
+            $("#coffee_state").text(msg.body + " 제조 완료!");
+        });
+    }
+
+    function onError(e) {
+        console.log("STOMP ERROR", e);
+    }
+
+    function onDebug(m) {
+        console.log("STOMP DEBUG", m);
+    }
+</script>
 </body>
+
 </html>

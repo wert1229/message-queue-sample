@@ -20,7 +20,7 @@ public class MainController {
 
     @PostMapping("/order")
     public String orderCoffee(@RequestParam("coffee") String coffeeName) {
-        rabbitTemplate.convertAndSend(RabbitConfig.TOPIC_EXCHANGE_NAME, "order.coffee.first", coffeeName);
+        rabbitTemplate.convertAndSend(RabbitConfig.EXCHANGE, "order.coffee.add", coffeeName);
         return "order";
     }
 }

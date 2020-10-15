@@ -8,28 +8,43 @@ import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class RabbitConfig {
-    public static final String QUEUE_NANE = "coffee-order";
-    public static final String TOPIC_EXCHANGE_NAME = "coffee-order-exchange";
-    public static final String ROUTING_NAME = "order.coffee.#";
+    public static final String REQUEST_QUEUE = "coffee-order";
+    public static final String RESPONSE_QUEUE = "coffee-result";
+
+    public static final String EXCHANGE = "coffee-exchange";
+
+    public static final String REQUEST_ROUTING = "order.coffee.#";
+    public static final String RESPONSE_ROUTING = "result.coffee.#";
 
     @Bean
-    public Queue queue() {
-        return new Queue(QUEUE_NANE, false);
+    public Queue reqQueue() {
+        return new Queue(REQUEST_QUEUE, true);
+    }
+
+    @Bean
+    public Queue resQueue() {
+        return new Queue(RESPONSE_QUEUE, true);
     }
 
     @Bean
     public TopicExchange exchange() {
-        return new TopicExchange(TOPIC_EXCHANGE_NAME);
+        return new TopicExchange(EXCHANGE);
     }
 
     @Bean
-    public Binding binding(Queue queue, TopicExchange topicExchange) {
-        return BindingBuilder.bind(queue).to(topicExchange).with(ROUTING_NAME);
+    public Binding reqBinding(@Qualifier("reqQueue") Queue queue, TopicExchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange).with(REQUEST_ROUTING);
+    }
+
+    @Bean
+    public Binding resBinding(@Qualifier("resQueue") Queue queue, TopicExchange exchange) {
+        return BindingBuilder.bind(queue).to(exchange).with(RESPONSE_ROUTING);
     }
 
     @Bean
